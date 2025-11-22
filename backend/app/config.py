@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     # API Keys
     USPTO_API_KEY: str
     ANTHROPIC_API_KEY: str
+    RAPIDAPI_KEY: str
+    RAPIDAPI_HOST: str = "uspto-trademark.p.rapidapi.com"
 
     # Application
     ENVIRONMENT: str = "development"

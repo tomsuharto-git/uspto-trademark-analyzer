@@ -17,14 +17,25 @@ class USPTOClient:
         self.api_key = settings.USPTO_API_KEY
         self.base_url = settings.USPTO_BASE_URL
         self.tsdr_url = settings.USPTO_TSDR_URL
+
+        # RapidAPI configuration for trademark search
+        self.rapidapi_key = settings.RAPIDAPI_KEY
+        self.rapidapi_host = settings.RAPIDAPI_HOST
+        self.rapidapi_url = f"https://{self.rapidapi_host}/v1"
+
         self.headers = {
             "api_key": self.api_key,
             "Accept": "application/json"
         }
 
+        self.rapidapi_headers = {
+            "x-rapidapi-key": self.rapidapi_key,
+            "x-rapidapi-host": self.rapidapi_host
+        }
+
     async def search_trademarks(self, query: str, limit: int = 50) -> List[Trademark]:
         """
-        Search for trademarks by text query
+        Search for trademarks by text query using RapidAPI
 
         Args:
             query: Search term (trademark name, keyword)
@@ -33,15 +44,27 @@ class USPTOClient:
         Returns:
             List of Trademark objects
         """
-        # For MVP, we'll use the TSDR API with serial number lookups
-        # In production, integrate with the full-text search API
+        # Use RapidAPI USPTO Trademark Search
+        url = f"{self.rapidapi_url}/trademarkSearch/{query}/active"
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
-                # This is a simplified implementation
-                # Real implementation would use the search API endpoint
-                results = await self._mock_search(query, limit)
-                return results
+                response = await client.get(
+                    url,
+                    headers=self.rapidapi_headers
+                )
+                response.raise_for_status()
+
+                data = response.json()
+
+                # Parse RapidAPI response into Trademark objects
+                trademarks = self._parse_rapidapi_response(data, limit)
+                return trademarks
+
+            except httpx.HTTPStatusError as e:
+                print(f"HTTP error searching trademarks: {e}")
+                print(f"Response: {e.response.text}")
+                return []
             except Exception as e:
                 print(f"Error searching trademarks: {e}")
                 return []
@@ -140,43 +163,83 @@ class USPTOClient:
         except:
             return None
 
-    async def _mock_search(self, query: str, limit: int) -> List[Trademark]:
+    def _parse_rapidapi_response(self, data: dict, limit: int) -> List[Trademark]:
         """
-        Mock search for development/testing
-        TODO: Replace with actual USPTO search API integration
-        """
-        # Return mock data for testing
-        mock_trademarks = [
-            Trademark(
-                serial_number="88234567",
-                registration_number="5678901",
-                mark_text=f"{query.upper()} BRAND",
-                owner_name="Example Corporation",
-                status=TrademarkStatus.REGISTERED,
-                filing_date=datetime(2020, 1, 15).date(),
-                registration_date=datetime(2021, 6, 30).date(),
-                international_classes=["009", "035"],
-                goods_services_description="Computer software and hardware"
-            ),
-            Trademark(
-                serial_number="88234568",
-                mark_text=f"{query.upper()} PRO",
-                owner_name="Another Company LLC",
-                status=TrademarkStatus.PENDING,
-                filing_date=datetime(2023, 3, 10).date(),
-                international_classes=["009"],
-                goods_services_description="Mobile applications"
-            ),
-            Trademark(
-                serial_number="88234569",
-                mark_text=f"{query.upper()}TECH",
-                owner_name="Tech Innovations Inc",
-                status=TrademarkStatus.REGISTERED,
-                filing_date=datetime(2019, 5, 20).date(),
-                registration_date=datetime(2020, 11, 15).date(),
-                international_classes=["042"],
-                goods_services_description="Software development services"
-            ),
-        ]
+        Parse RapidAPI response into Trademark objects
 
-        return mock_trademarks[:limit]
+        RapidAPI returns data in format:
+        {
+            "count": 123,
+            "items": [
+                {
+                    "keyword": "TRADEMARK NAME",
+                    "serial_number": "87654321",
+                    "registration_number": "5123456",
+                    "status_code": "REG",
+                    "status_label": "Live/Registered",
+                    "filing_date": "2018-01-15",
+                    "registration_date": "2019-06-20",
+                    "owner": "Company Name",
+                    "description": "Goods and services description",
+                    "class_codes": "009,035"
+                },
+                ...
+            ]
+        }
+        """
+        trademarks = []
+
+        try:
+            items = data.get("items", [])
+
+            for item in items[:limit]:
+                # Parse status
+                status = self._parse_rapidapi_status(item.get("status_code", ""))
+
+                # Parse dates
+                filing_date = self._parse_date(item.get("filing_date"))
+                registration_date = self._parse_date(item.get("registration_date"))
+
+                # Parse international classes
+                class_codes = item.get("class_codes", "")
+                classes = [c.strip().zfill(3) for c in class_codes.split(",") if c.strip()]
+
+                trademark = Trademark(
+                    serial_number=item.get("serial_number", ""),
+                    registration_number=item.get("registration_number"),
+                    mark_text=item.get("keyword", ""),
+                    owner_name=item.get("owner", "Unknown"),
+                    status=status,
+                    filing_date=filing_date,
+                    registration_date=registration_date,
+                    international_classes=classes,
+                    goods_services_description=item.get("description", "")
+                )
+
+                trademarks.append(trademark)
+
+        except Exception as e:
+            print(f"Error parsing RapidAPI response: {e}")
+
+        return trademarks
+
+    def _parse_rapidapi_status(self, status_code: str) -> TrademarkStatus:
+        """Map RapidAPI status code to TrademarkStatus enum"""
+        if not status_code:
+            return TrademarkStatus.UNKNOWN
+
+        status_map = {
+            "REG": TrademarkStatus.REGISTERED,
+            "REGISTERED": TrademarkStatus.REGISTERED,
+            "LIVE": TrademarkStatus.REGISTERED,
+            "PENDING": TrademarkStatus.PENDING,
+            "PUB": TrademarkStatus.PENDING,
+            "PUBLISHED": TrademarkStatus.PENDING,
+            "ABANDONED": TrademarkStatus.ABANDONED,
+            "DEAD": TrademarkStatus.ABANDONED,
+            "CANCELLED": TrademarkStatus.CANCELLED,
+            "CANCELED": TrademarkStatus.CANCELLED,
+            "EXPIRED": TrademarkStatus.EXPIRED,
+        }
+
+        return status_map.get(status_code.upper(), TrademarkStatus.UNKNOWN)
