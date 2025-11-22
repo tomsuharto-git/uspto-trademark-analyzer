@@ -55,21 +55,21 @@ if [ -f ".env" ]; then
     ANTHROPIC_KEY=$(grep ANTHROPIC_API_KEY .env | cut -d '=' -f2)
     if [ -n "$ANTHROPIC_KEY" ]; then
         echo "Setting ANTHROPIC_API_KEY..."
-        railway variables set ANTHROPIC_API_KEY="$ANTHROPIC_KEY"
+        railway variables --set "ANTHROPIC_API_KEY=$ANTHROPIC_KEY"
     fi
 fi
 
 echo "Setting USPTO_API_KEY..."
-railway variables set USPTO_API_KEY=szbcdzcfpygkhqpzigiuoqapzfgiay
+railway variables --set "USPTO_API_KEY=szbcdzcfpygkhqpzigiuoqapzfgiay"
 
 echo "Setting ENVIRONMENT..."
-railway variables set ENVIRONMENT=production
+railway variables --set "ENVIRONMENT=production"
 
 echo "Setting DEBUG..."
-railway variables set DEBUG=false
+railway variables --set "DEBUG=false"
 
 echo "Setting CORS_ORIGINS..."
-railway variables set CORS_ORIGINS=https://frontend-i6hvfo09t-tomsuharto-3884s-projects.vercel.app
+railway variables --set "CORS_ORIGINS=https://frontend-i6hvfo09t-tomsuharto-3884s-projects.vercel.app"
 
 echo ""
 echo "✅ Environment variables set"
