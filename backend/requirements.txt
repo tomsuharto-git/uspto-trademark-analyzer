@@ -1,0 +1,18 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+httpx==0.25.1
+anthropic==0.7.8
+python-dotenv==1.0.0
+python-multipart==0.0.6
+aiofiles==23.2.1
+
+# Data processing
+pandas==2.1.3
+python-Levenshtein==0.23.0
+jellyfish==1.0.3
+
+# Database (future)
+# sqlalchemy==2.0.23
+# psycopg2-binary==2.9.9
