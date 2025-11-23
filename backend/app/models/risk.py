@@ -26,6 +26,7 @@ class TrademarkRiskAnalysis(BaseModel):
     """Risk analysis for a single trademark"""
     serial_number: str
     mark_text: str
+    owner_name: str
 
     # Overall risk
     risk_score: float = Field(..., ge=0, le=100)
@@ -40,6 +41,13 @@ class TrademarkRiskAnalysis(BaseModel):
 
     # Recommendations
     recommendations: List[str] = Field(default_factory=list)
+
+    # Optional trademark details (from TSDR API)
+    goods_services_description: Optional[str] = None
+    international_classes: Optional[List[str]] = None
+    status: Optional[str] = None
+    filing_date: Optional[str] = None
+    registration_date: Optional[str] = None
 
 
 class SearchResultsSummary(BaseModel):

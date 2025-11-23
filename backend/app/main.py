@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.api.routes import search, analysis
+from app.api.routes import search, analysis, trademark
 
 # Create FastAPI app
 app = FastAPI(
@@ -35,6 +35,11 @@ app.include_router(
     analysis.router,
     prefix=f"{settings.API_V1_PREFIX}/analysis",
     tags=["analysis"]
+)
+app.include_router(
+    trademark.router,
+    prefix=f"{settings.API_V1_PREFIX}/trademark",
+    tags=["trademark"]
 )
 
 

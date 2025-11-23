@@ -8,7 +8,9 @@ from app.models.trademark import SearchQuery
 from app.models.risk import (
     AnalysisResponse,
     TrademarkRiskAnalysis,
-    RiskTierResults
+    RiskTierResults,
+    SearchResultsSummary,
+    RiskLevel
 )
 from app.services.uspto import USPTOClient
 from app.services.risk_scorer import RiskScorer
@@ -45,11 +47,57 @@ async def analyze_trademark(query: SearchQuery):
         )
 
         if not trademarks:
-            # No results found
-            raise HTTPException(
-                status_code=404,
-                detail="No trademarks found matching your search"
+            # No results found - return empty response instead of 404
+            processing_time = time() - start_time
+            return AnalysisResponse(
+                query=query.query,
+                summary=SearchResultsSummary(
+                    query=query.query,
+                    total_results=0,
+                    overall_risk_level=RiskLevel.LOW,
+                    risk_distribution={"critical": 0, "high": 0, "medium": 0, "low": 0},
+                    key_findings=[],
+                    recommendations=[
+                        "No existing trademarks found matching your search",
+                        "This is a positive sign for trademark clearance",
+                        "Consider conducting a comprehensive trademark search through an attorney"
+                    ],
+                    summary="No trademarks were found matching your search query in the USPTO database. While this is encouraging, it's recommended to conduct a comprehensive trademark search before proceeding.",
+                    suggested_next_steps=[
+                        "Consult with a trademark attorney for comprehensive clearance",
+                        "Consider searching for phonetically similar marks",
+                        "Evaluate potential common law trademark conflicts"
+                    ]
+                ),
+                results_by_tier=RiskTierResults(),
+                total_analyzed=0,
+                processing_time_seconds=round(processing_time, 2)
             )
+
+        # Step 1.5: Enrich trademark data with TSDR API for accurate owner/class info
+        print(f"\n📡 Enriching {len(trademarks)} trademarks with TSDR data...")
+        for i, trademark in enumerate(trademarks, 1):
+            try:
+                # Fetch full data from USPTO TSDR API using serial number
+                tsdr_data = await uspto_client.get_trademark_by_serial(trademark.serial_number)
+
+                if tsdr_data:
+                    # Update with accurate owner name and classes from official source
+                    if tsdr_data.owner_name:
+                        trademark.owner_name = tsdr_data.owner_name
+                        print(f"  [{i}/{len(trademarks)}] ✅ {trademark.serial_number}: Owner = {tsdr_data.owner_name}")
+
+                    if tsdr_data.international_classes:
+                        trademark.international_classes = tsdr_data.international_classes
+
+                    # Include goods/services description from TSDR
+                    if tsdr_data.goods_services_description:
+                        trademark.goods_services_description = tsdr_data.goods_services_description
+                else:
+                    print(f"  [{i}/{len(trademarks)}] ⚠️  {trademark.serial_number}: TSDR data not available")
+            except Exception as e:
+                print(f"  [{i}/{len(trademarks)}] ❌ {trademark.serial_number}: Error fetching TSDR data: {e}")
+                # Continue with RapidAPI data if TSDR fails
 
         # Step 2: Calculate risk scores
         risk_scorer = RiskScorer()
@@ -58,7 +106,8 @@ async def analyze_trademark(query: SearchQuery):
         for trademark in trademarks:
             risk_score, risk_factors = risk_scorer.calculate_risk_score(
                 query=query.query,
-                trademark=trademark
+                trademark=trademark,
+                query_classes=query.classes or []
             )
 
             risk_level = risk_scorer.get_risk_level(risk_score)
@@ -71,12 +120,18 @@ async def analyze_trademark(query: SearchQuery):
             risk_analysis = TrademarkRiskAnalysis(
                 serial_number=trademark.serial_number,
                 mark_text=trademark.mark_text,
+                owner_name=trademark.owner_name,
                 risk_score=risk_score,
                 risk_level=risk_level,
                 risk_factors=risk_factors,
                 risk_explanation=conflict_reason,
                 conflict_reason=conflict_reason,
-                recommendations=_generate_recommendations(risk_level, trademark)
+                recommendations=_generate_recommendations(risk_level, trademark),
+                goods_services_description=trademark.goods_services_description,
+                international_classes=trademark.international_classes,
+                status=trademark.status,
+                filing_date=trademark.filing_date,
+                registration_date=trademark.registration_date
             )
 
             risk_analyses.append(risk_analysis)

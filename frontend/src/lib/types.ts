@@ -39,12 +39,18 @@ export interface RiskFactors {
 export interface TrademarkRiskAnalysis {
   serial_number: string
   mark_text: string
+  owner_name: string
   risk_score: number
   risk_level: RiskLevel
   risk_factors: RiskFactors
   risk_explanation: string
   conflict_reason: string
   recommendations: string[]
+  goods_services_description?: string
+  international_classes?: string[]
+  status?: TrademarkStatus
+  filing_date?: string
+  registration_date?: string
 }
 
 export interface SearchResultsSummary {
@@ -83,4 +89,5 @@ export interface SearchQuery {
   query: string
   search_type?: 'text' | 'serial' | 'owner'
   limit?: number
+  classes?: string[]
 }
