@@ -2,14 +2,16 @@
 
 ## Current Status
 
-✅ **All code is committed and ready** (commit `c82910b`)
+✅ **All code is committed and ready** (commit `1a5a914`)
 - RapidAPI integration complete
-- Railway configuration simplified
+- CORS support for Vercel frontend added
+- Railway start command fixed to use virtual environment
 - All changes pushed to GitHub main branch
 
-❌ **Railway backend needs manual redeploy**
-- Currently running old commit (29f6d34c) with mock database
-- Needs to deploy latest commit with RapidAPI code
+⏳ **Railway backend auto-deploying**
+- Fixed "uvicorn: command not found" error
+- Latest commit includes: RapidAPI code + CORS fix + proper start command
+- Should auto-deploy from GitHub in ~2-3 minutes
 
 ## Quick Deployment (2 Options)
 
