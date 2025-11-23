@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     RAPIDAPI_KEY: str
     RAPIDAPI_HOST: str = "uspto-trademark.p.rapidapi.com"
 
-    # Database (Railway PostgreSQL)
-    DATABASE_URL: str
+    # Database (Railway PostgreSQL) - DEPRECATED: Now using RapidAPI instead
+    DATABASE_URL: str | None = None
 
     # Application
     ENVIRONMENT: str = "development"
