@@ -11,11 +11,13 @@ class Settings(BaseSettings):
     # API Keys
     USPTO_API_KEY: str
     ANTHROPIC_API_KEY: str
-    RAPIDAPI_KEY: str
-    RAPIDAPI_HOST: str = "uspto-trademark.p.rapidapi.com"
 
-    # Database (Railway PostgreSQL) - DEPRECATED: Now using RapidAPI instead
-    DATABASE_URL: str | None = None
+    # RapidAPI (DEPRECATED - now using PostgreSQL database)
+    RAPIDAPI_KEY: str | None = None
+    RAPIDAPI_HOST: str | None = None
+
+    # Database (Railway PostgreSQL) - PRIMARY DATA SOURCE
+    DATABASE_URL: str
 
     # Application
     ENVIRONMENT: str = "development"

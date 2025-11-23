@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 
 from app.models.trademark import SearchQuery, Trademark
-from app.services.uspto import USPTOClient
+from app.services.db_client import PostgreSQLClient
 
 router = APIRouter()
 
@@ -22,8 +22,9 @@ async def search_trademarks(query: SearchQuery):
         List of matching trademarks
     """
     try:
-        client = USPTOClient()
-        results = await client.search_trademarks(
+        client = PostgreSQLClient()
+        client.connect()
+        results = client.search_trademarks(
             query=query.query,
             limit=query.limit
         )
@@ -52,8 +53,9 @@ async def get_trademark(serial_number: str):
         Trademark details
     """
     try:
-        client = USPTOClient()
-        trademark = await client.get_trademark_by_serial(serial_number)
+        client = PostgreSQLClient()
+        client.connect()
+        trademark = client.get_trademark_by_serial(serial_number)
 
         if not trademark:
             raise HTTPException(

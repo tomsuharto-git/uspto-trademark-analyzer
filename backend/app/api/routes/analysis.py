@@ -12,7 +12,7 @@ from app.models.risk import (
     SearchResultsSummary,
     RiskLevel
 )
-from app.services.uspto import USPTOClient
+from app.services.db_client import PostgreSQLClient
 from app.services.risk_scorer import RiskScorer
 from app.services.ai_analyzer import AIAnalyzer
 
@@ -39,9 +39,10 @@ async def analyze_trademark(query: SearchQuery):
     start_time = time()
 
     try:
-        # Step 1: Search USPTO database
-        uspto_client = USPTOClient()
-        trademarks = await uspto_client.search_trademarks(
+        # Step 1: Search PostgreSQL database
+        db_client = PostgreSQLClient()
+        db_client.connect()
+        trademarks = db_client.search_trademarks(
             query=query.query,
             limit=query.limit
         )
@@ -74,31 +75,6 @@ async def analyze_trademark(query: SearchQuery):
                 processing_time_seconds=round(processing_time, 2)
             )
 
-        # Step 1.5: Enrich trademark data with TSDR API for accurate owner/class info
-        print(f"\n📡 Enriching {len(trademarks)} trademarks with TSDR data...")
-        for i, trademark in enumerate(trademarks, 1):
-            try:
-                # Fetch full data from USPTO TSDR API using serial number
-                tsdr_data = await uspto_client.get_trademark_by_serial(trademark.serial_number)
-
-                if tsdr_data:
-                    # Update with accurate owner name and classes from official source
-                    if tsdr_data.owner_name:
-                        trademark.owner_name = tsdr_data.owner_name
-                        print(f"  [{i}/{len(trademarks)}] ✅ {trademark.serial_number}: Owner = {tsdr_data.owner_name}")
-
-                    if tsdr_data.international_classes:
-                        trademark.international_classes = tsdr_data.international_classes
-
-                    # Include goods/services description from TSDR
-                    if tsdr_data.goods_services_description:
-                        trademark.goods_services_description = tsdr_data.goods_services_description
-                else:
-                    print(f"  [{i}/{len(trademarks)}] ⚠️  {trademark.serial_number}: TSDR data not available")
-            except Exception as e:
-                print(f"  [{i}/{len(trademarks)}] ❌ {trademark.serial_number}: Error fetching TSDR data: {e}")
-                # Continue with RapidAPI data if TSDR fails
-
         # Step 2: Calculate risk scores
         risk_scorer = RiskScorer()
         risk_analyses = []
@@ -129,9 +105,9 @@ async def analyze_trademark(query: SearchQuery):
                 recommendations=_generate_recommendations(risk_level, trademark),
                 goods_services_description=trademark.goods_services_description,
                 international_classes=trademark.international_classes,
-                status=trademark.status,
-                filing_date=trademark.filing_date,
-                registration_date=trademark.registration_date
+                status=trademark.status.value if trademark.status else None,
+                filing_date=trademark.filing_date.isoformat() if trademark.filing_date else None,
+                registration_date=trademark.registration_date.isoformat() if trademark.registration_date else None
             )
 
             risk_analyses.append(risk_analysis)

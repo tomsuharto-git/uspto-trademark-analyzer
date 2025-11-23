@@ -3,7 +3,7 @@ Trademark detail API routes
 """
 from fastapi import APIRouter, HTTPException
 from app.models.trademark import Trademark
-from app.services.uspto import USPTOClient
+from app.services.db_client import PostgreSQLClient
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ async def get_trademark_details(serial_number: str):
     """
     Get complete trademark details by serial number
 
-    Fetches full trademark information from USPTO TSDR API including:
+    Fetches full trademark information from PostgreSQL database including:
     - Owner name
     - Status and dates
     - International classes
@@ -32,8 +32,9 @@ async def get_trademark_details(serial_number: str):
         500: Error fetching trademark data
     """
     try:
-        uspto_client = USPTOClient()
-        trademark = await uspto_client.get_trademark_by_serial(serial_number)
+        db_client = PostgreSQLClient()
+        db_client.connect()
+        trademark = db_client.get_trademark_by_serial(serial_number)
 
         if not trademark:
             raise HTTPException(
