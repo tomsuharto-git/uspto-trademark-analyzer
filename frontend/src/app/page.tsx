@@ -6,9 +6,11 @@ import { analyzeTrademarkRisk, getErrorMessage } from '@/lib/api'
 import type { AnalysisResponse } from '@/lib/types'
 import ResultsSummary from '@/components/ResultsSummary'
 import RiskTierSection from '@/components/RiskTierSection'
+import ClassSelector from '@/components/ClassSelector'
 
 export default function Home() {
   const [query, setQuery] = useState('')
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<AnalysisResponse | null>(null)
@@ -30,6 +32,7 @@ export default function Home() {
         query: query.trim(),
         search_type: 'text',
         limit: 50,
+        classes: selectedClasses.length > 0 ? selectedClasses : undefined,
       })
       setResults(analysisResults)
     } catch (err) {
@@ -40,20 +43,18 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            USPTO Trademark Risk Analyzer
+    <main className="min-h-screen bg-[#1a1a1a]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Logo/Title Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-6xl font-display font-bold text-blue-400 mb-2">
+            Clearance
           </h1>
-          <p className="mt-2 text-gray-600">
-            AI-powered conflict analysis for trademark clearance
+          <p className="text-lg text-blue-300/70">
+            USPTO Trademark Risk Analyzer
           </p>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Search Section */}
         <div className="mb-12">
           <form onSubmit={handleSearch} className="max-w-3xl mx-auto">
@@ -63,13 +64,13 @@ export default function Home() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Enter trademark name to analyze..."
-                className="w-full px-6 py-4 pr-32 text-lg border-2 border-gray-300 rounded-xl focus:border-primary focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all"
+                className="w-full px-6 py-4 pr-32 text-lg bg-[#2a2a2a] border-2 border-gray-700 text-gray-200 placeholder-gray-500 rounded-xl focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-400/20 transition-all"
                 disabled={loading}
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
               >
                 {loading ? (
                   <>
@@ -85,45 +86,20 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Search Tips */}
-            {!results && !loading && (
-              <div className="mt-4 text-sm text-gray-500 text-center">
-                <p>
-                  Examples: <button
-                    type="button"
-                    onClick={() => setQuery('ACME')}
-                    className="text-primary hover:underline mx-1"
-                  >
-                    ACME
-                  </button>
-                  •
-                  <button
-                    type="button"
-                    onClick={() => setQuery('TECH PRO')}
-                    className="text-primary hover:underline mx-1"
-                  >
-                    TECH PRO
-                  </button>
-                  •
-                  <button
-                    type="button"
-                    onClick={() => setQuery('WIDGET')}
-                    className="text-primary hover:underline mx-1"
-                  >
-                    WIDGET
-                  </button>
-                </p>
-              </div>
-            )}
+            {/* Class Selector */}
+            <ClassSelector
+              selectedClasses={selectedClasses}
+              onChange={setSelectedClasses}
+            />
           </form>
 
           {/* Error Display */}
           {error && (
-            <div className="max-w-3xl mx-auto mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-fade-in">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="max-w-3xl mx-auto mt-6 p-4 bg-red-900/20 border border-red-700/50 rounded-lg flex items-start gap-3 animate-fade-in">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-red-900">Error</p>
-                <p className="text-red-700 text-sm mt-1">{error}</p>
+                <p className="font-semibold text-red-300">Error</p>
+                <p className="text-red-400 text-sm mt-1">{error}</p>
               </div>
             </div>
           )}
@@ -132,9 +108,9 @@ export default function Home() {
         {/* Loading State */}
         {loading && (
           <div className="max-w-4xl mx-auto text-center py-12 animate-fade-in">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-lg font-semibold text-gray-700">Searching USPTO database...</p>
-            <p className="text-gray-500 mt-2">Analyzing results with AI...</p>
+            <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-lg font-semibold text-blue-300">Searching USPTO database...</p>
+            <p className="text-gray-400 mt-2">Analyzing results with AI...</p>
           </div>
         )}
 
@@ -146,7 +122,7 @@ export default function Home() {
 
             {/* Risk Tier Results */}
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-display font-bold text-blue-300">
                 Search Results ({results.total_analyzed} trademarks analyzed)
               </h2>
 
@@ -195,50 +171,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Welcome State */}
-        {!results && !loading && !error && (
-          <div className="max-w-2xl mx-auto text-center py-12">
-            <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Search className="w-10 h-10 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Ready to analyze your trademark?
-            </h2>
-            <p className="text-gray-600 mb-8">
-              Enter a trademark name above to search the USPTO database and receive
-              AI-powered risk analysis with actionable recommendations.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-                  <span className="text-2xl">🔍</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Search USPTO</h3>
-                <p className="text-sm text-gray-600">
-                  Search millions of trademarks in the USPTO database
-                </p>
-              </div>
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                  <span className="text-2xl">🤖</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">AI Analysis</h3>
-                <p className="text-sm text-gray-600">
-                  Get intelligent risk assessment powered by Claude
-                </p>
-              </div>
-              <div className="p-4 bg-white rounded-lg border border-gray-200">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-                  <span className="text-2xl">📊</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Clear Results</h3>
-                <p className="text-sm text-gray-600">
-                  Results organized by risk level with recommendations
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   )

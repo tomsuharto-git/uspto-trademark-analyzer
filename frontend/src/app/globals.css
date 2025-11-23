@@ -6,6 +6,49 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+/* Canela Deck Font Family */
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/CanelaDeck-Thin-Trial.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/CanelaDeck-Light-Trial.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/CanelaDeck-Regular-Trial.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/CanelaDeck-Medium-Trial.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/CanelaDeck-Bold-Trial.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Canela';
+  src: url('/fonts/CanelaDeck-Black-Trial.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
 @layer base {
   :root {
     --background: 249 250 251; /* gray-50 */
@@ -22,10 +65,10 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-gray-700;
   }
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-[#1a1a1a] text-gray-200;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

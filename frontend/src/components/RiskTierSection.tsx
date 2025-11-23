@@ -32,7 +32,7 @@ export default function RiskTierSection({
         <div className="flex items-center gap-3">
           <div className={`w-1 h-8 rounded-full bg-risk-${riskLevel}`} />
           <div className="text-left">
-            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+            <h3 className="text-lg font-display font-bold text-gray-100">{title}</h3>
             <p className="text-sm text-gray-600">
               {results.length} trademark{results.length !== 1 ? 's' : ''} found
             </p>
