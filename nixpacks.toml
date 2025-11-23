@@ -1,13 +1,13 @@
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv", "gcc", "stdenv.cc.cc"]
+nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv", "gcc-unwrapped"]
+nixLibs = ["gcc-unwrapped"]
 
 [phases.install]
 cmds = [
   "python -m venv /opt/venv",
   "/opt/venv/bin/pip install --upgrade pip",
-  "cd backend && /opt/venv/bin/pip install -r requirements.txt",
-  "chmod +x /app/start.sh"
+  "cd backend && /opt/venv/bin/pip install -r requirements.txt"
 ]
 
 [start]
-cmd = "/app/start.sh"
+cmd = "cd backend && /opt/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT"
