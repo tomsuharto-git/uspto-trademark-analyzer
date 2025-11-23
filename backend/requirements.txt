@@ -9,7 +9,7 @@ python-multipart==0.0.6
 aiofiles==23.2.1
 
 # Data processing
-pandas==2.1.3
+pandas>=2.2.0  # Updated for Python 3.13 compatibility
 python-Levenshtein==0.23.0
 jellyfish==1.0.3
 

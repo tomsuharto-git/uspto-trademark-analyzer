@@ -61,12 +61,14 @@ class SearchQuery(BaseModel):
     query: str = Field(..., min_length=1, max_length=200)
     search_type: str = Field(default="text", pattern="^(text|serial|owner)$")
     limit: int = Field(default=50, ge=1, le=100)
+    classes: Optional[List[str]] = Field(default=None, description="International trademark classes (e.g., ['009', '025'])")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "query": "ACME",
                 "search_type": "text",
-                "limit": 50
+                "limit": 50,
+                "classes": ["009", "035"]
             }
         }

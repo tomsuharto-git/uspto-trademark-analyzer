@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     RAPIDAPI_KEY: str
     RAPIDAPI_HOST: str = "uspto-trademark.p.rapidapi.com"
 
+    # Database (Railway PostgreSQL)
+    DATABASE_URL: str
+
     # Application
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
@@ -27,7 +30,7 @@ class Settings(BaseSettings):
 
     # USPTO API Configuration
     USPTO_BASE_URL: str = "https://data.uspto.gov"
-    USPTO_TSDR_URL: str = "https://tsdr.uspto.gov/statusxml"
+    USPTO_TSDR_URL: str = "https://tsdrapi.uspto.gov/ts/cd/casestatus"
 
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
