@@ -13,6 +13,5 @@ pandas>=2.2.0  # Updated for Python 3.13 compatibility
 python-Levenshtein==0.23.0
 jellyfish==1.0.3
 
-# Database (future)
-# sqlalchemy==2.0.23
-# psycopg2-binary==2.9.9
+# Database
+psycopg2-binary==2.9.9
